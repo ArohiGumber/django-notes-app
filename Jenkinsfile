@@ -5,16 +5,23 @@ pipeline {
         stage("Clone Code"){
             steps {
                 echo "Cloning the code"
-                git url:"https://github.com/LondheShubham153/django-notes-app.git", branch: "main"
+                git url:"https://github.com/ArohiGumber/django-notes-app.git", branch: "${params.Branch}"
             }
         }
         stage("Build"){
+            when{
+                expression {params.CI}
+            }
             steps {
                 echo "Building the image"
                 sh "docker build -t my-note-app ."
             }
         }
+        
         stage("Push to Docker Hub"){
+            when{
+                expression {params.CI}
+            }
             steps {
                 echo "Pushing the image to docker hub"
                 withCredentials([usernamePassword(credentialsId:"dockerHub",passwordVariable:"dockerHubPass",usernameVariable:"dockerHubUser")]){
@@ -25,8 +32,11 @@ pipeline {
             }
         }
         stage("Deploy"){
+            when{
+                expression {params.CD}
+            }
             steps {
-                echo "Deploying the container"
+                echo"Deploying the container"
                 sh "docker-compose down && docker-compose up -d"
                 
             }
